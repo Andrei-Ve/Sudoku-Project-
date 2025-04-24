@@ -1,2 +1,3 @@
 # Sudoku-Project-
-HI
+WE CAN DO THIS!!!!
+~~~~SUDOKU incoming!!!~~~~
