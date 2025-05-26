@@ -1,18 +1,13 @@
 #include <iostream>
-#include <fstream>
-#include <array>
 #include <set>
-#include <string>
-#include <cstdlib>
-#include <ctime>
-#include <memory>
+
 using namespace std;
 
 class GameComponent {
 public:
     virtual void display() const = 0;
     virtual bool isValid() const = 0;
-    virtual ~GameComponent() {}
+    virtual ~GameComponent() {}        
 };
 class SudokuBoard : public GameComponent {
     protected:
@@ -32,21 +27,21 @@ class SudokuBoard : public GameComponent {
         friend std::ostream& operator<<(std::ostream& os, const SudokuBoard& sb);
         SudokuBoard operator+(const SudokuBoard& rhs) const;
     };
-    class SudokuGame : public SudokuBoard {
-        private:
-            set<int> validNumbers;
-            int attempts;
-            string difficulty;
-        public:
-            SudokuGame(int size = 9, string level = "easy");
-        
-            void start();
-            void play();
-            void saveGame(const string& filename) const;
-            void loadGame(const string& filename);
-            void giveHint();
-            bool checkComplete() const;
-        
-            virtual void display() const override;
-        };
+class SudokuGame : public SudokuBoard {
+    private:
+        set<int> validNumbers;
+    public:
+        SudokuGame(int size = 9);
+
+        void start();
+        void play();
+        bool checkComplete() const;
+        virtual void display() const override;
+    };
+
+int main(){
+
+    return 0;
+    
+}
             
