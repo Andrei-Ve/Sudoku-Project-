@@ -19,14 +19,14 @@ class SudokuBoard : public GameComponent {
         virtual ~SudokuBoard();
     
         void setValue(int row, int col, int value);
-        int getValue(int row, int col) const;
 
+        //not an obstract class anymore
         virtual void display() const override;
         virtual bool isValid() const override;
 
         friend std::ostream& operator<<(std::ostream& os, const SudokuBoard& sb);
         SudokuBoard operator+(const SudokuBoard& rhs) const;
-    };
+};
 
 // std::ostream& operator<<(std::ostream& os, const SudokuBoard& c){
 //     os << c.real << " + " << c.imag << "i" << std::endl;
@@ -35,16 +35,14 @@ class SudokuBoard : public GameComponent {
 
 class SudokuGame : public SudokuBoard {
     private:
-        set<int> validNumbers;
+        set<int> validNumbers = {1, 2, 3, 4, 5, 6, 7, 8, 9};
     public:
         SudokuGame(int size = 9);
 
-        void start();
-        void play();
         bool checkComplete() const;
         virtual void display() const override;
         
-    };
+};
 
 /*
 #include <random>
