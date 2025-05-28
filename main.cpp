@@ -1,7 +1,11 @@
 #include <iostream>
+#include <conio.h>  // for _getch()
+#include <windows.h>
+
 #include <set>
 #include <random>
 using namespace std;
+
 
 class valuessValue{
     int value;
@@ -247,36 +251,36 @@ class SudokuGame : public SudokuBoard {
         //virtual void display() const override;
 };
 
-
-
-
-
 int main(){
+    SetConsoleOutputCP(CP_UTF8);
+    
 
     bool loop = true;
-    while(loop){
-        int a;
-        cout << "\nEnter 1 to start sudoku game, 2 to exit the program: ";
-        cin >> a;
-        if(a == 1){
-            cout << "good choice\n";
-            SudokuGame* game = new SudokuGame(9);
-            game->generateBaseValues(50);
-            cout << *game;
-            //game->display();
+    SudokuGame* game = new SudokuGame(9);
+    game->generateBaseValues(50);
+    cout << *game;
+    while (loop) {
+        int ch = _getch();
 
-            delete game;
-        }
-        else if(a == 2){
-            cout << "EXITING";
-            loop = false;
-        }
-        else{
-            cout << "EXITING";
-            loop = false;
+        if (ch == 0 || ch == 224) {
+            int key = _getch();  // Actual key code
+            system("cls");
+            cout << "Press arrow keys, ESC to quit...\n";
+            cout << *game;
+            switch (key) {
+                case 72: cout << "↑\n"; break;
+                case 80: cout << "↓\n"; break;
+                case 75: cout << "←\n"; break;
+                case 77: cout << "→\n"; break;
+                default: break;
+            }
+            
+        } else {
+            if (ch == 27) { // ESC key
+                cout << "Exiting...\n";
+                loop = false;
+            }
         }
     }
-
-    return 0;
-}
-            
+    return 0;     
+}      
