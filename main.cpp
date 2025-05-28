@@ -104,7 +104,7 @@ ostream& operator<<(ostream& os, const SudokuBoard& sb) {
         os << i + 1 << " | ";
         for (int j = 0; j < sb.SIZE; ++j) {
             if (sb.board[i][j] == 0)
-                os << "0 ";
+                os << ". ";
             else
                 os << sb.board[i][j] << " ";
 
@@ -171,16 +171,15 @@ class SudokuGame : public SudokuBoard {
                         int littleSquareRow = row/3;
                         int littleSquareCol = col/3;
                         //cout << littleSquareRow << " " << littleSquareCol << endl;
-                        for(int y = 0; y < 3; ++y){
-                            for (int x = 0; x < 3; ++x){
-                                if(getValue(y, x) == value) {
+                        noDoubles = true;
+                        int startRow = (row / 3) * 3;
+                        int startCol = (col / 3) * 3;
+                        for (int y = 0; y < 3; ++y) {
+                            for (int x = 0; x < 3; ++x) {
+                                if (getValue(startRow + y, startCol + x) == value) {
                                     noDoubles = false;
-                                    break;
-                                }
-                                else if(validNumbers.count(getValue(row, col)) > 0){
                                 }
                             }
-                            
                         }
                         
                         if(horOK & vertOk & noDoubles){
@@ -197,9 +196,7 @@ class SudokuGame : public SudokuBoard {
 
 
 
-
-int main(){
-
+int main() {
     bool loop = true;
     while(loop){
         int a;
@@ -208,11 +205,9 @@ int main(){
         if(a == 1){
             cout << "good choice\n";
             SudokuGame* game = new SudokuGame(9);
-            cout << "Initial empty board:\n";
-            cout << *game;
-            game->display();
-            cout << "After generating base values:\n";
-            cout << *game;
+            cout << *game; 
+            game->generateBaseValues(20);
+            cout << *game; 
             delete game;
         }
         else if(a == 2){
@@ -227,4 +222,3 @@ int main(){
 
     return 0;
 }
-            
