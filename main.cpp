@@ -104,7 +104,7 @@ ostream& operator<<(ostream& os, const SudokuBoard& sb) {
         os << i + 1 << " | ";
         for (int j = 0; j < sb.SIZE; ++j) {
             if (sb.board[i][j] == 0)
-                os << ". ";
+                os << "0 ";
             else
                 os << sb.board[i][j] << " ";
 
