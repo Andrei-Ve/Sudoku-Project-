@@ -84,10 +84,42 @@ class SudokuBoard : public GameComponent {
         
 };
 
-// std::ostream& operator<<(std::ostream& os, const SudokuBoard& c){
-//     os << c.real << " + " << c.imag << "i" << std::endl;
-//     return os;
 // }
+ostream& operator<<(ostream& os, const SudokuBoard& sb) {
+    os << "\n    ";
+    for (int col = 0; col < sb.SIZE; ++col) {
+        os << col + 1 << " ";
+        if ((col + 1) % 3 == 0 && col != sb.SIZE - 1)
+            os << "| ";
+    }
+    os << "\n  ";
+    for (int i = 0; i < sb.SIZE + 2; ++i)
+        os << "--";
+    os << "\n";
+
+    for (int i = 0; i < sb.SIZE; ++i) {
+        os << i + 1 << " | ";
+        for (int j = 0; j < sb.SIZE; ++j) {
+            if (sb.board[i][j] == 0)
+                os << ". ";
+            else
+                os << sb.board[i][j] << " ";
+
+            if ((j + 1) % 3 == 0 && j != sb.SIZE - 1)
+                os << "| ";
+        }
+        os << "\n";
+
+        if ((i + 1) % 3 == 0 && i != sb.SIZE - 1) {
+            os << "  ";
+            for (int i = 0; i < sb.SIZE + 2; ++i)
+                os << "--";
+            os << "\n";
+        }
+    }
+    os << endl;
+    return os;
+}
 
 class SudokuGame : public SudokuBoard {
     private:
@@ -229,14 +261,10 @@ int main(){
         if(a == 1){
             cout << "good choice\n";
             SudokuGame* game = new SudokuGame(9);
-            game->generateBaseValues(20);
-            game->display();
+            game->generateBaseValues(50);
+            cout << *game;
+            //game->display();
 
-            SudokuGame* game2 = new SudokuGame(9);
-            game2->generateBaseValues(50);
-            game2->display();
-
-            delete game2;
             delete game;
         }
         else if(a == 2){
