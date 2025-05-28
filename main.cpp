@@ -95,6 +95,8 @@ class SudokuGame : public SudokuBoard {
     public:
         SudokuGame(int size) : SudokuBoard(size) {}
 
+
+
         void generateBaseValues(int amount){
             random_device rd;
             mt19937 gen(rd());
@@ -106,9 +108,9 @@ class SudokuGame : public SudokuBoard {
                     //generate random value
                     int value = distrib(gen);
 
-                    bool horOK = false, vertOk = false, noDoubles = false;
+                    bool horOK = true, vertOk = true, noDoubles = true;
                     
-                    if(validNumbers.count(getValue(row, col)) > 0){
+                    if (getValue(row, col) != 0) {
                         i--;
                         continue;
                     }
@@ -116,46 +118,100 @@ class SudokuGame : public SudokuBoard {
                         //check that the row doesnt have the same number
                         for(int x = 0; x<SIZE; ++x){
                             if(getValue(row, x) == value){
-                              break;
-                            }
-                            if(x == SIZE-1){
-                                horOK = true;
+                                horOK = false;
+                                break;
                             }
                         }
                         //check that the column doesnt have the same number
                         for(int y = 0; y<SIZE; ++y){
                             if(getValue(y, col) == value){
-                              break;
-                            }
-                            if(y == SIZE-1){
-                                vertOk = true;
+                                vertOk = false;
+                                break;
                             }
                         }
 
                         //chack that 3x3 square doesnt have same number
-                        int littleSquareRow = row/3;
-                        int littleSquareCol = col/3;
+                        int littleSquareRow = (row/3)*3;
+                        int littleSquareCol = (col/3)*3;
                         //cout << littleSquareRow << " " << littleSquareCol << endl;
-                        for(int y = 0; y < 3; ++y){
+
+                        for(int y = 0; y < 3 && noDoubles; ++y){
                             for (int x = 0; x < 3; ++x){
-                                if(getValue(y, x) == value) {
+                                if(getValue(littleSquareRow+y, littleSquareCol+x) == value) {
                                     noDoubles = false;
                                     break;
                                 }
-                                else if(validNumbers.count(getValue(row, col)) > 0){
-                                }
                             }
-                            
                         }
-                        
-                        if(horOK & vertOk & noDoubles){
+
+                        if(horOK && vertOk && noDoubles){
                             setValue(row, col, value);
                         }
                     }
             }
         }
 
-        //bool checkComplete() const;
+        bool check3x3Square(int startRow, int startCol) const {
+            set<int> seen;
+            for (int y = 0; y < 3; ++y) {
+                for (int x = 0; x < 3; ++x) {
+                    int val = getValue(startRow + y, startCol + x);
+                    if (val == 0) return false; // empty cell means incomplete
+                    if (seen.count(val)) {
+                        return false; // duplicate found
+                    }
+                    seen.insert(val);
+                }
+            }
+
+            return seen == validNumbers; // make sure it contains all digits 1–9
+        }
+
+        
+
+        bool checkComplete() const {
+            bool sudokuCompleted = true;
+
+            //check sum   (1+2+3..8+9 = 45  -> 45*9 = 405)  
+            int Sum = 0;
+            for (int i = 0; i < SIZE; i++){
+                for (int j = 0; j < SIZE; j++){
+                    Sum += getValue(j, i);
+                }
+            }  
+            if(!(Sum == 405)){
+                sudokuCompleted = false;
+            }
+            //check that each row has an item from set 1-9
+            for(int i = 0; i<SIZE; ++i){
+                set<int> rowSet;
+                for (int j = 0; j < SIZE; ++j) {
+                    rowSet.insert(getValue(i, j));
+                }
+                if (rowSet != validNumbers) {
+                    sudokuCompleted = false;
+                }           
+            }
+            for(int i = 0; i<SIZE; ++i){
+                set<int> colSet;
+                for (int j = 0; j < SIZE; ++j) {
+                    colSet.insert(getValue(j, i));
+                }
+                if (colSet != validNumbers) {
+                    sudokuCompleted = false;
+                }           
+            }
+            for (int row = 0; row < 9; row += 3) {
+                for (int col = 0; col < 9; col += 3) {
+                    if (!check3x3Square(row, col)) {
+                        sudokuCompleted = false;
+                        break;
+                    }
+                }
+            }
+            return sudokuCompleted;
+        }   
+
         //virtual void display() const override;
 };
 
@@ -173,9 +229,15 @@ int main(){
         if(a == 1){
             cout << "good choice\n";
             SudokuGame* game = new SudokuGame(9);
-            game->display();
             game->generateBaseValues(20);
             game->display();
+
+            SudokuGame* game2 = new SudokuGame(9);
+            game2->generateBaseValues(50);
+            game2->display();
+
+            delete game2;
+            delete game;
         }
         else if(a == 2){
             cout << "EXITING";
