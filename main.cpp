@@ -1,7 +1,12 @@
 #include <iostream>
 #include <set>
-
+#include <random>
 using namespace std;
+
+class valuessValue{
+    int value;
+    string color;
+};
 
 class GameComponent {
 public:
@@ -14,19 +19,70 @@ class SudokuBoard : public GameComponent {
         int** board;
         const int SIZE;
     public:
-        SudokuBoard(int size = 9) : SIZE(size){};
-        SudokuBoard(const SudokuBoard& other); // Copy constructor
-        virtual ~SudokuBoard();
-    
-        void setValue(int row, int col, int value);
-        int getValue(int row, int col) const;
+        SudokuBoard(int size = 9) : SIZE(size){
+            board = new int*[SIZE];
+            for (int i = 0; i < SIZE; ++i) {
+                board[i] = new int[SIZE];
+                for (int j = 0; j < SIZE; ++j) {
+                    board[i][j] = 0;  //fill ebverything wiht 0s
+                }
+            }   
+        }
 
-        virtual void display() const override;
-        virtual bool isValid() const override;
+        SudokuBoard(const SudokuBoard& other): SIZE(other.SIZE){ // copy constructorr
+            board = new int*[SIZE];
+            for (int i = 0; i < SIZE; ++i) {
+                board[i] = new int[SIZE];
+                for (int j = 0; j < SIZE; ++j) {
+                    board[i][j] = other.board[i][j];
+                }
+            }
+        }
+        virtual ~SudokuBoard() {
+            for (int i = 0; i < SIZE; ++i) {
+                delete[] board[i];
+            }
+            delete[] board;
+        }
+        void setValue(int row, int col, int value){
+            board[row][col] = value;
+        }
+        int getValue(int row, int col) const { //const so it cant change anything on the board
+            return board[row][col];
+        }
+        //not an obstract class anymore
+        virtual void display() const override {
+            cout << endl;
+            for (int i = 0; i < SIZE; ++i) {
+                for (int j = 0; j < SIZE; ++j) {
+                    cout << board[i][j] << " ";
+                }
+                cout << endl;
+            }
+            cout << endl;
+        }
+        virtual bool isValid() const override {
+            return true;  //return true for now
+        }
 
+
+        SudokuBoard operator+(const SudokuBoard& rhs){
+            SudokuBoard result = *this;  // making a copy the current board
+            for (int i = 0; i < SIZE; ++i) {
+                for (int j = 0; j < SIZE; ++j) {
+                    if (result.getValue(i, j) == 0) {//adding values that are 0
+                        result.setValue(i, j, rhs.getValue(i, j));
+                    }
+                }
+            }
+            return result;
+        }
+        
+        
+        
         friend std::ostream& operator<<(std::ostream& os, const SudokuBoard& sb);
-        SudokuBoard operator+(const SudokuBoard& rhs) const;
-    };
+        
+};
 
 // std::ostream& operator<<(std::ostream& os, const SudokuBoard& c){
 //     os << c.real << " + " << c.imag << "i" << std::endl;
@@ -35,25 +91,77 @@ class SudokuBoard : public GameComponent {
 
 class SudokuGame : public SudokuBoard {
     private:
-        set<int> validNumbers;
+        set<int> validNumbers = {1, 2, 3, 4, 5, 6, 7, 8, 9};
     public:
-        SudokuGame(int size = 9);
+        SudokuGame(int size) : SudokuBoard(size) {}
 
-        void start();
-        void play();
-        bool checkComplete() const;
-        virtual void display() const override;
-        
-    };
+        void generateBaseValues(int amount){
+            random_device rd;
+            mt19937 gen(rd());
+            uniform_int_distribution<> distrib(1, 9);
+                for (int i = 0; i<amount; ++i){
+                    //generate random coordinate
+                    int row = distrib(gen)-1; 
+                    int col = distrib(gen)-1;
+                    //generate random value
+                    int value = distrib(gen);
 
-/*
-#include <random>
-std::random_device rd;
-std::mt19937 gen(rd());
-std::uniform_int_distribution<> distrib(1, 9);
-int random_number = distrib(gen);
-std::cout << "Random number between 1 and 9: " << random_number << std::endl;
-*/
+                    bool horOK = false, vertOk = false, noDoubles = false;
+                    
+                    if(validNumbers.count(getValue(row, col)) > 0){
+                        i--;
+                        continue;
+                    }
+                    if(getValue(row, col) == 0){//if position not taken
+                        //check that the row doesnt have the same number
+                        for(int x = 0; x<SIZE; ++x){
+                            if(getValue(row, x) == value){
+                              break;
+                            }
+                            if(x == SIZE-1){
+                                horOK = true;
+                            }
+                        }
+                        //check that the column doesnt have the same number
+                        for(int y = 0; y<SIZE; ++y){
+                            if(getValue(y, col) == value){
+                              break;
+                            }
+                            if(y == SIZE-1){
+                                vertOk = true;
+                            }
+                        }
+
+                        //chack that 3x3 square doesnt have same number
+                        int littleSquareRow = row/3;
+                        int littleSquareCol = col/3;
+                        //cout << littleSquareRow << " " << littleSquareCol << endl;
+                        for(int y = 0; y < 3; ++y){
+                            for (int x = 0; x < 3; ++x){
+                                if(getValue(y, x) == value) {
+                                    noDoubles = false;
+                                    break;
+                                }
+                                else if(validNumbers.count(getValue(row, col)) > 0){
+                                }
+                            }
+                            
+                        }
+                        
+                        if(horOK & vertOk & noDoubles){
+                            setValue(row, col, value);
+                        }
+                    }
+            }
+        }
+
+        //bool checkComplete() const;
+        //virtual void display() const override;
+};
+
+
+
+
 
 int main(){
 
@@ -63,10 +171,11 @@ int main(){
         cout << "\nEnter 1 to start sudoku game, 2 to exit the program: ";
         cin >> a;
         if(a == 1){
-            cout << "good choice";
-            GameComponent* game = new SudokuGame();
+            cout << "good choice\n";
+            SudokuGame* game = new SudokuGame(9);
             game->display();
-
+            game->generateBaseValues(20);
+            game->display();
         }
         else if(a == 2){
             cout << "EXITING";
