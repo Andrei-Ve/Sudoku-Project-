@@ -90,40 +90,39 @@ class SudokuBoard : public GameComponent {
 
 // }
 ostream& operator<<(ostream& os, const SudokuBoard& sb) {
-    os << "\n    ";
-    for (int col = 0; col < sb.SIZE; ++col) {
-        os << col + 1 << " ";
-        if ((col + 1) % 3 == 0 && col != sb.SIZE - 1)
-            os << "| ";
-    }
-    os << "\n  ";
-    for (int i = 0; i < sb.SIZE + 2; ++i)
-        os << "--";
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     os << "\n";
 
     for (int i = 0; i < sb.SIZE; ++i) {
-        os << i + 1 << " | ";
         for (int j = 0; j < sb.SIZE; ++j) {
-            if (sb.board[i][j] == 0)
-                os << ". ";
-            else
-                os << sb.board[i][j] << " ";
+            int val = sb.board[i][j];
 
+            if (val == 0) {
+                SetConsoleTextAttribute(hConsole, 8); // Gray for empty cells
+                os << ". ";
+            } else {
+                SetConsoleTextAttribute(hConsole, 11); // Cyan for generated values
+                os << val << " ";
+            }
+
+            SetConsoleTextAttribute(hConsole, 7); // Reset to default (white)
             if ((j + 1) % 3 == 0 && j != sb.SIZE - 1)
                 os << "| ";
         }
         os << "\n";
 
         if ((i + 1) % 3 == 0 && i != sb.SIZE - 1) {
-            os << "  ";
-            for (int i = 0; i < sb.SIZE + 2; ++i)
+            for (int j = 0; j < sb.SIZE + 2; ++j)
                 os << "--";
             os << "\n";
         }
     }
+
     os << endl;
+    SetConsoleTextAttribute(hConsole, 7); // Final reset to default
     return os;
 }
+
 
 class SudokuGame : public SudokuBoard {
     private:
