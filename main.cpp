@@ -133,7 +133,9 @@ class SudokuGame : public SudokuBoard, public Cursor{
         
     public:
         SudokuGame(int size) : SudokuBoard(size) {}
-
+        void placeNumber(){
+            if()
+        }
         void generateBaseValues(int amount){
             random_device rd;
             mt19937 gen(rd());
@@ -268,17 +270,25 @@ int main(){
             int key = _getch();  // Actual key code
 
             switch (key) {
-                case 72: cout << "↑\n"; globalCursor.moveUp(); break;
-                case 80: cout << "↓\n";globalCursor.moveDown(); break;
-                case 75: cout << "←\n";globalCursor.moveLeft(); break;
-                case 77: cout << "→\n";globalCursor.moveRight(); break;
+                case 72: globalCursor.moveUp(); break;
+                case 80: globalCursor.moveDown(); break;
+                case 75: globalCursor.moveLeft(); break;
+                case 77: globalCursor.moveRight(); break;
                 default: break;
             }
             system("cls");
             cout << "Press arrow keys, ESC to quit...\n";
             cout << *game;
             
-        } else {
+        } 
+        else if (ch >= '1' && ch <= '9') {
+            int value = ch - '0';
+            game->setValue(game->getY(), game->getX(), value);
+            system("cls");
+            cout << "Press arrow keys, ESC to quit...\n";
+            cout << *game;
+        }
+        else {
             if (ch == 27) { // ESC key
                 cout << "Exiting...\n";
                 loop = false;
