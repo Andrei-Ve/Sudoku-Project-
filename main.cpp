@@ -133,9 +133,9 @@ class SudokuGame : public SudokuBoard, public Cursor{
         
     public:
         SudokuGame(int size) : SudokuBoard(size) {}
-        void placeNumber(){
-            if()
-        }
+        // void placeNumber(){
+        //     if()
+        // }
         void generateBaseValues(int amount){
             random_device rd;
             mt19937 gen(rd());
@@ -289,7 +289,7 @@ int main(){
             cout << *game;
         }
         else {
-            if (ch == 27) { // ESC key
+            if (ch == 27) { // ESCape key
                 cout << "Exiting...\n";
                 loop = false;
             }
