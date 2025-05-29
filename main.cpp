@@ -1,17 +1,11 @@
 #include <iostream>
 #include <conio.h>  // for _getch()
 #include <windows.h>
-
+#include "global_cursor.h"
 #include <set>
 #include <random>
 using namespace std;
-
-
-class valuessValue{
-    int value;
-    string color;
-};
-
+Cursor globalCursor = Cursor();
 class GameComponent {
 public:
     virtual void display() const = 0;
@@ -88,7 +82,7 @@ class SudokuBoard : public GameComponent {
         
 };
 
-// }
+
 ostream& operator<<(ostream& os, const SudokuBoard& sb) {
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     os << "\n";
@@ -96,15 +90,24 @@ ostream& operator<<(ostream& os, const SudokuBoard& sb) {
     for (int i = 0; i < sb.SIZE; ++i) {
         for (int j = 0; j < sb.SIZE; ++j) {
             int val = sb.board[i][j];
-
-            if (val == 0) {
-                SetConsoleTextAttribute(hConsole, 8); // Gray for empty cells
-                os << ". ";
+            if(i == globalCursor.getY() && j == globalCursor.getX()){
+                SetConsoleTextAttribute(hConsole, 14); // Highlight color (e.g., yellow)
+                if (val == 0) {
+                    os << ". ";
+                } else {
+                    os << val << " ";
+                }
+                SetConsoleTextAttribute(hConsole, 7); // Reset
             } else {
-                SetConsoleTextAttribute(hConsole, 11); // Cyan for generated values
-                os << val << " ";
+                if (val == 0) {
+                    SetConsoleTextAttribute(hConsole, 8); // Gray for empty cells
+                    os << ". ";
+                } 
+                else {
+                    SetConsoleTextAttribute(hConsole, 11); // Cyan for generated values
+                    os << val << " ";
+                }
             }
-
             SetConsoleTextAttribute(hConsole, 7); // Reset to default (white)
             if ((j + 1) % 3 == 0 && j != sb.SIZE - 1)
                 os << "| ";
@@ -124,14 +127,15 @@ ostream& operator<<(ostream& os, const SudokuBoard& sb) {
 }
 
 
-class SudokuGame : public SudokuBoard {
+class SudokuGame : public SudokuBoard, public Cursor{
     private:
         set<int> validNumbers = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+        
     public:
         SudokuGame(int size) : SudokuBoard(size) {}
-
-
-
+        void placeNumber(){
+            if()
+        }
         void generateBaseValues(int amount){
             random_device rd;
             mt19937 gen(rd());
@@ -200,9 +204,7 @@ class SudokuGame : public SudokuBoard {
             }
 
             return seen == validNumbers; // make sure it contains all digits 1–9
-        }
-
-        
+        } 
 
         bool checkComplete() const {
             bool sudokuCompleted = true;
@@ -250,6 +252,8 @@ class SudokuGame : public SudokuBoard {
         //virtual void display() const override;
 };
 
+
+
 int main(){
     SetConsoleOutputCP(CP_UTF8);
     
@@ -257,24 +261,34 @@ int main(){
     bool loop = true;
     SudokuGame* game = new SudokuGame(9);
     game->generateBaseValues(50);
+    cout << "Press arrow keys, ESC to quit...\n";
     cout << *game;
     while (loop) {
         int ch = _getch();
 
         if (ch == 0 || ch == 224) {
             int key = _getch();  // Actual key code
+
+            switch (key) {
+                case 72: globalCursor.moveUp(); break;
+                case 80: globalCursor.moveDown(); break;
+                case 75: globalCursor.moveLeft(); break;
+                case 77: globalCursor.moveRight(); break;
+                default: break;
+            }
             system("cls");
             cout << "Press arrow keys, ESC to quit...\n";
             cout << *game;
-            switch (key) {
-                case 72: cout << "↑\n"; break;
-                case 80: cout << "↓\n"; break;
-                case 75: cout << "←\n"; break;
-                case 77: cout << "→\n"; break;
-                default: break;
-            }
             
-        } else {
+        } 
+        else if (ch >= '1' && ch <= '9') {
+            int value = ch - '0';
+            game->setValue(game->getY(), game->getX(), value);
+            system("cls");
+            cout << "Press arrow keys, ESC to quit...\n";
+            cout << *game;
+        }
+        else {
             if (ch == 27) { // ESC key
                 cout << "Exiting...\n";
                 loop = false;
