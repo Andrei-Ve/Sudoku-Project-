@@ -1,17 +1,11 @@
 #include <iostream>
 #include <conio.h>  // for _getch()
 #include <windows.h>
-
+#include "global_cursor.h"
 #include <set>
 #include <random>
 using namespace std;
-
-
-class valuessValue{
-    int value;
-    string color;
-};
-
+Cursor globalCursor = Cursor();
 class GameComponent {
 public:
     virtual void display() const = 0;
@@ -88,50 +82,57 @@ class SudokuBoard : public GameComponent {
         
 };
 
-// }
+
 ostream& operator<<(ostream& os, const SudokuBoard& sb) {
-    os << "\n    ";
-    for (int col = 0; col < sb.SIZE; ++col) {
-        os << col + 1 << " ";
-        if ((col + 1) % 3 == 0 && col != sb.SIZE - 1)
-            os << "| ";
-    }
-    os << "\n  ";
-    for (int i = 0; i < sb.SIZE + 2; ++i)
-        os << "--";
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     os << "\n";
 
     for (int i = 0; i < sb.SIZE; ++i) {
-        os << i + 1 << " | ";
         for (int j = 0; j < sb.SIZE; ++j) {
-            if (sb.board[i][j] == 0)
-                os << ". ";
-            else
-                os << sb.board[i][j] << " ";
-
+            int val = sb.board[i][j];
+            if(i == globalCursor.getY() && j == globalCursor.getX()){
+                SetConsoleTextAttribute(hConsole, 14); // Highlight color (e.g., yellow)
+                if (val == 0) {
+                    os << ". ";
+                } else {
+                    os << val << " ";
+                }
+                SetConsoleTextAttribute(hConsole, 7); // Reset
+            } else {
+                if (val == 0) {
+                    SetConsoleTextAttribute(hConsole, 8); // Gray for empty cells
+                    os << ". ";
+                } 
+                else {
+                    SetConsoleTextAttribute(hConsole, 11); // Cyan for generated values
+                    os << val << " ";
+                }
+            }
+            SetConsoleTextAttribute(hConsole, 7); // Reset to default (white)
             if ((j + 1) % 3 == 0 && j != sb.SIZE - 1)
                 os << "| ";
         }
         os << "\n";
 
         if ((i + 1) % 3 == 0 && i != sb.SIZE - 1) {
-            os << "  ";
-            for (int i = 0; i < sb.SIZE + 2; ++i)
+            for (int j = 0; j < sb.SIZE + 2; ++j)
                 os << "--";
             os << "\n";
         }
     }
+
     os << endl;
+    SetConsoleTextAttribute(hConsole, 7); // Final reset to default
     return os;
 }
 
-class SudokuGame : public SudokuBoard {
+
+class SudokuGame : public SudokuBoard, public Cursor{
     private:
         set<int> validNumbers = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+        
     public:
         SudokuGame(int size) : SudokuBoard(size) {}
-
-
 
         void generateBaseValues(int amount){
             random_device rd;
@@ -201,9 +202,7 @@ class SudokuGame : public SudokuBoard {
             }
 
             return seen == validNumbers; // make sure it contains all digits 1–9
-        }
-
-        
+        } 
 
         bool checkComplete() const {
             bool sudokuCompleted = true;
@@ -253,8 +252,6 @@ class SudokuGame : public SudokuBoard {
 
 
 
-
-
 int main(){
     SetConsoleOutputCP(CP_UTF8);
     
@@ -262,22 +259,24 @@ int main(){
     bool loop = true;
     SudokuGame* game = new SudokuGame(9);
     game->generateBaseValues(50);
+    cout << "Press arrow keys, ESC to quit...\n";
     cout << *game;
     while (loop) {
         int ch = _getch();
 
         if (ch == 0 || ch == 224) {
             int key = _getch();  // Actual key code
+
+            switch (key) {
+                case 72: cout << "↑\n"; globalCursor.moveUp(); break;
+                case 80: cout << "↓\n";globalCursor.moveDown(); break;
+                case 75: cout << "←\n";globalCursor.moveLeft(); break;
+                case 77: cout << "→\n";globalCursor.moveRight(); break;
+                default: break;
+            }
             system("cls");
             cout << "Press arrow keys, ESC to quit...\n";
             cout << *game;
-            switch (key) {
-                case 72: cout << "↑\n"; break;
-                case 80: cout << "↓\n"; break;
-                case 75: cout << "←\n"; break;
-                case 77: cout << "→\n"; break;
-                default: break;
-            }
             
         } else {
             if (ch == 27) { // ESC key
