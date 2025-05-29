@@ -283,7 +283,7 @@ int main(){
         } 
         else if (ch >= '1' && ch <= '9') {
             int value = ch - '0';
-            game->setValue(game->getY(), game->getX(), value);
+            game->setValue(globalCursor.getY(), globalCursor.getX(), value);
             system("cls");
             cout << "Press arrow keys, ESC to quit...\n";
             cout << *game;
