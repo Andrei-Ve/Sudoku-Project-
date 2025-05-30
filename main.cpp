@@ -4,8 +4,16 @@
 #include "global_cursor.h"
 #include <set>
 #include <random>
+
 using namespace std;
+
 Cursor globalCursor = Cursor();
+// struct numberColor{
+//     int number;
+//     string color;
+// };
+
+
 class GameComponent {
 public:
     virtual void display() const = 0;
@@ -63,7 +71,7 @@ class SudokuBoard : public GameComponent {
             return true;
         }
 
-        SudokuBoard operator+(const SudokuBoard& rhs){
+        SudokuBoard operator+(const SudokuBoard& rhs) const {
             SudokuBoard result = *this;  // making a copy the current board
             for (int i = 0; i < SIZE; ++i) {
                 for (int j = 0; j < SIZE; ++j) {
@@ -82,48 +90,7 @@ class SudokuBoard : public GameComponent {
 };
 
 
-ostream& operator<<(ostream& os, const SudokuBoard& sb) {
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    os << "\n";
 
-    for (int i = 0; i < sb.SIZE; ++i) {
-        for (int j = 0; j < sb.SIZE; ++j) {
-            int val = sb.board[i][j];
-            if(i == globalCursor.getY() && j == globalCursor.getX()){
-                SetConsoleTextAttribute(hConsole, 14); // Highlight color (e.g., yellow)
-                if (val == 0) {
-                    os << ". ";
-                } else {
-                    os << val << " ";
-                }
-                SetConsoleTextAttribute(hConsole, 7); // Reset
-            } else {
-                if (val == 0) {
-                    SetConsoleTextAttribute(hConsole, 8); // Gray for empty cells
-                    os << ". ";
-                } 
-                else {
-                    SetConsoleTextAttribute(hConsole, 11); // Cyan for generated values
-                    os << val << " ";
-                }
-            }
-            SetConsoleTextAttribute(hConsole, 7); // Reset to default (white)
-            if ((j + 1) % 3 == 0 && j != sb.SIZE - 1)
-                os << "| ";
-        }
-        os << "\n";
-
-        if ((i + 1) % 3 == 0 && i != sb.SIZE - 1) {
-            for (int j = 0; j < sb.SIZE + 2; ++j)
-                os << "--";
-            os << "\n";
-        }
-    }
-
-    os << endl;
-    SetConsoleTextAttribute(hConsole, 7); // Final reset to default
-    return os;
-}
 
 
 class SudokuGame : public SudokuBoard, public Cursor{
@@ -269,7 +236,7 @@ class SudokuGame : public SudokuBoard, public Cursor{
             return true;
         }
 
-        bool isFull(){
+        bool isFull() const {
             bool sudokuFull = true;
             for(int i = 0; i < SIZE; ++i){
                 for(int j = 0; j < SIZE; ++j){
@@ -281,21 +248,105 @@ class SudokuGame : public SudokuBoard, public Cursor{
             return sudokuFull;
         }
 
+        SudokuGame operator+(const SudokuGame& rhs) const {
+            SudokuGame result(SIZE);
+            for (int i = 0; i < SIZE; ++i) {
+                for (int j = 0; j < SIZE; ++j) {
+                    int val = this->getValue(i, j);
+                    if (val != 0) {
+                        result.setValue(i, j, val);
+                    } else {
+                        result.setValue(i, j, rhs.getValue(i, j));
+                    }
+                }
+            }
+            return result;
+        }
 
+        void combineWith(const SudokuGame& other) {
+            for (int row = 0; row < 9; ++row) {
+                for (int col = 0; col < 9; ++col) {
+                    if (this->board[row][col] == 0) {
+                        this->board[row][col] = other.board[row][col];
+                    }
+                }
+            }
+        }
+    
         //virtual void display() const override;
 };
 
+SudokuGame* baseBoard = nullptr;
+
+ostream& operator<<(ostream& os, const SudokuBoard& sb) {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    os << "\n";
+
+    for (int i = 0; i < sb.SIZE; ++i) {
+        for (int j = 0; j < sb.SIZE; ++j) {
+            int val = sb.board[i][j];
+            if(i == globalCursor.getY() && j == globalCursor.getX()){
+                SetConsoleTextAttribute(hConsole, 14); // Highlight color (e.g., yellow)
+                if (val == 0) {
+                    os << ". ";
+                } else {
+                    os << val << " ";
+                }
+                SetConsoleTextAttribute(hConsole, 7); // Reset
+            } else {
+                if (val == 0) {
+                    SetConsoleTextAttribute(hConsole, 8); // Gray for empty cells
+                    os << ". ";
+                } 
+                else if(baseBoard->getValue(i, j) != 0){
+                    SetConsoleTextAttribute(hConsole, 8); // gray for base values
+                    os << val << " ";
+                }
+                else{
+                    SetConsoleTextAttribute(hConsole, 3); // Cyan for generated values
+                    os << val << " ";
+                }
+            }
+            SetConsoleTextAttribute(hConsole, 7); // Reset to default (white)
+            if ((j + 1) % 3 == 0 && j != sb.SIZE - 1)
+                os << "| ";
+        }
+        os << "\n";
+
+        if ((i + 1) % 3 == 0 && i != sb.SIZE - 1) {
+            for (int j = 0; j < sb.SIZE + 2; ++j)
+                os << "--";
+            os << "\n";
+        }
+    }
+
+    os << endl;
+    SetConsoleTextAttribute(hConsole, 7); // Final reset to default
+    return os;
+}
+
+void displayEverything(const SudokuGame* combinedBoard, const SudokuGame* gameBase) {
+            system("cls");
+            cout << "Press arrow keys, ESC to quit...\n";
+
+            cout << *combinedBoard;
+            if(combinedBoard->isFull()){
+                cout << "Press enter to check if sudoku is correctly solved\n";
+            }
+            
+}
 
 
 int main(){
     SetConsoleOutputCP(CP_UTF8);
-    
 
     bool loop = true;
+    baseBoard = new SudokuGame(9);
+    baseBoard->generateBaseValues(50);
     SudokuGame* game = new SudokuGame(9);
-    game->generateBaseValues(50);
-    cout << "Press arrow keys, ESC to quit...\n";
-    cout << *game;
+    SudokuGame* combinedBoard = new SudokuGame(*game + *baseBoard); 
+    displayEverything(combinedBoard, game);
+
     while (loop) {
         int ch = _getch();
 
@@ -309,33 +360,28 @@ int main(){
                 case 77: globalCursor.moveRight(); break;
                 default: break;
             }
-            system("cls");
-            cout << "Press arrow keys, ESC to quit...\n";
-            cout << *game;
-            if(game->isFull()){
-                cout << "Press enter to check if sudoku is correctly solved\n";
-            }
-            
+            displayEverything(combinedBoard, game);
         } 
         else if (ch >= '1' && ch <= '9') {
-            int value = ch - '0';
-            game->setValue(globalCursor.getY(), globalCursor.getX(), value);
-            system("cls");
-            cout << "Press arrow keys, ESC to quit...\n";
-            cout << *game;
-            if(game->isFull()){
-                cout << "Press enter to check if sudoku is correctly solved\n";
+            if(baseBoard->getValue(globalCursor.getY(), globalCursor.getX()) == 0){
+                int value = ch - '0';
+                combinedBoard->setValue(globalCursor.getY(), globalCursor.getX(), value);
+                displayEverything(combinedBoard, game);                
             }
+
         }
         else {
             if (ch == 27) { // ESCape key
                 cout << "Exiting...\n";
                 loop = false;
             }
-            if (ch == 13 && game->isFull()) { // enter key
-                cout << game->checkComplete();
+            if (ch == 13 && combinedBoard->isFull()) { // enter key
+                cout << combinedBoard->checkComplete();
             }
         }
     }
+    delete baseBoard;
+    delete game;
+    delete combinedBoard;
     return 0;     
 }      
