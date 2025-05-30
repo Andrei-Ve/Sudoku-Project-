@@ -59,10 +59,9 @@ class SudokuBoard : public GameComponent {
             }
             cout << endl;
         }
-        virtual bool isValid() const override {
-            return true;  //return true for now
+        virtual bool isValid() const override{
+            return true;
         }
-
 
         SudokuBoard operator+(const SudokuBoard& rhs){
             SudokuBoard result = *this;  // making a copy the current board
@@ -206,48 +205,82 @@ class SudokuGame : public SudokuBoard, public Cursor{
             return seen == validNumbers; // make sure it contains all digits 1–9
         } 
 
-        bool checkComplete() const {
-            bool sudokuCompleted = true;
+        // bool checkComplete() const {
+        //     bool sudokuCompleted = true;
 
-            //check sum   (1+2+3..8+9 = 45  -> 45*9 = 405)  
-            int Sum = 0;
-            for (int i = 0; i < SIZE; i++){
-                for (int j = 0; j < SIZE; j++){
-                    Sum += getValue(j, i);
-                }
-            }  
-            if(!(Sum == 405)){
-                sudokuCompleted = false;
-            }
-            //check that each row has an item from set 1-9
-            for(int i = 0; i<SIZE; ++i){
-                set<int> rowSet;
+        //     //check sum   (1+2+3..8+9 = 45  -> 45*9 = 405)  
+        //     // int Sum = 0;
+        //     // for (int i = 0; i < SIZE; i++){
+        //     //     for (int j = 0; j < SIZE; j++){
+        //     //         Sum += getValue(j, i);
+        //     //     }
+        //     // }  
+        //     // if(!(Sum == 405)){
+        //     //     sudokuCompleted = false;
+        //     // }
+        //     //check that each row has an item from set 1-9
+        //     for(int i = 0; i<SIZE; ++i){
+        //         set<int> rowSet;
+        //         for (int j = 0; j < SIZE; ++j) {
+        //             rowSet.insert(getValue(i, j));
+        //         }
+        //         if (rowSet != validNumbers) {
+        //             sudokuCompleted = false;
+        //         }           
+        //     }
+        //     for(int i = 0; i<SIZE; ++i){
+        //         set<int> colSet;
+        //         for (int j = 0; j < SIZE; ++j) {
+        //             colSet.insert(getValue(j, i));
+        //         }
+        //         if (colSet != validNumbers) {
+        //             sudokuCompleted = false;
+        //         }           
+        //     }
+        //     for (int row = 0; row < 9; row += 3) {
+        //         for (int col = 0; col < 9; col += 3) {
+        //             if (!check3x3Square(row, col)) {
+        //                 sudokuCompleted = false;
+        //                 break;
+        //             }
+        //         }
+        //     }
+        //     return sudokuCompleted;
+        // }   
+        bool checkComplete() const {
+            for (int i = 0; i < SIZE; ++i) {
+                set<int> rowSet, colSet;
                 for (int j = 0; j < SIZE; ++j) {
-                    rowSet.insert(getValue(i, j));
+                    int rowVal = getValue(i, j);
+                    int colVal = getValue(j, i);
+                    if (rowVal == 0 || colVal == 0) return false;
+                    rowSet.insert(rowVal);
+                    colSet.insert(colVal);
                 }
-                if (rowSet != validNumbers) {
-                    sudokuCompleted = false;
-                }           
+                if (rowSet != validNumbers || colSet != validNumbers) return false;
             }
-            for(int i = 0; i<SIZE; ++i){
-                set<int> colSet;
-                for (int j = 0; j < SIZE; ++j) {
-                    colSet.insert(getValue(j, i));
-                }
-                if (colSet != validNumbers) {
-                    sudokuCompleted = false;
-                }           
-            }
+
             for (int row = 0; row < 9; row += 3) {
                 for (int col = 0; col < 9; col += 3) {
-                    if (!check3x3Square(row, col)) {
-                        sudokuCompleted = false;
-                        break;
+                    if (!check3x3Square(row, col)) return false;
+                }
+            }
+
+            return true;
+        }
+
+        bool isFull(){
+            bool sudokuFull = true;
+            for(int i = 0; i < SIZE; ++i){
+                for(int j = 0; j < SIZE; ++j){
+                    if(getValue(i, j) == 0){
+                        sudokuFull = false;
                     }
                 }
             }
-            return sudokuCompleted;
-        }   
+            return sudokuFull;
+        }
+
 
         //virtual void display() const override;
 };
@@ -279,6 +312,9 @@ int main(){
             system("cls");
             cout << "Press arrow keys, ESC to quit...\n";
             cout << *game;
+            if(game->isFull()){
+                cout << "Press enter to check if sudoku is correctly solved\n";
+            }
             
         } 
         else if (ch >= '1' && ch <= '9') {
@@ -287,11 +323,17 @@ int main(){
             system("cls");
             cout << "Press arrow keys, ESC to quit...\n";
             cout << *game;
+            if(game->isFull()){
+                cout << "Press enter to check if sudoku is correctly solved\n";
+            }
         }
         else {
             if (ch == 27) { // ESCape key
                 cout << "Exiting...\n";
                 loop = false;
+            }
+            if (ch == 13 && game->isFull()) { // enter key
+                cout << game->checkComplete();
             }
         }
     }
