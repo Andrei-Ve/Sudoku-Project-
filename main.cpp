@@ -376,7 +376,12 @@ int main(){
                 loop = false;
             }
             if (ch == 13 && combinedBoard->isFull()) { // enter key
-                cout << combinedBoard->checkComplete();
+                if(combinedBoard->checkComplete()){
+                    cout << "Congratulations its correct!!";
+                }
+                else{
+                    cout << "Something is wrong";
+                }
             }
         }
     }
