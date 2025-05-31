@@ -342,7 +342,7 @@ int main(){
 
     bool loop = true;
     baseBoard = new SudokuGame(9);
-    baseBoard->generateBaseValues(50);
+    baseBoard->generateBaseValues(20);
     SudokuGame* game = new SudokuGame(9);
     SudokuGame* combinedBoard = new SudokuGame(*game + *baseBoard); 
     displayEverything(combinedBoard, game);
